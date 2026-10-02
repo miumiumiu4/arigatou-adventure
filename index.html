@@ -14,6 +14,13 @@
   #bl{left:14px;width:76px;height:76px;font-size:30px}#br{left:106px;width:76px;height:76px;font-size:30px}
   #bj{right:14px;width:96px;height:96px;font-size:17px;background:rgba(255,120,150,.7);color:#fff}
   #bj:active,#bj.p{background:rgba(255,80,120,.95)}
+  #bw{right:128px;width:84px;height:84px;font-size:15px;background:rgba(80,170,255,.75);color:#fff}
+  #bw:active,#bw.p{background:rgba(40,130,230,.95)}
+  .ov.boss{align-items:flex-end;background:rgba(15,25,40,.15)}
+  .ov.boss .card{max-height:60vh;padding:10px 14px;border-radius:18px}
+  .ov.boss .card h2{font-size:16px;margin:2px 0}.ov.boss .card .say{padding:6px 10px;margin:5px 0;font-size:13px}.ov.boss .card p{font-size:12px;margin:4px 0}.ov.boss .opt{padding:8px 10px;margin:5px 0;font-size:13px;border-width:2px}.ov.boss .fb,.ov.boss .keyp{font-size:12px;padding:6px 10px;margin:5px 0}.ov.boss .btn{padding:8px 20px;font-size:15px;margin-top:4px}.ov.boss .bbar{font-size:13px;margin-bottom:2px}
+  .bbar{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-weight:bold;font-size:15px}
+  .bhp{flex:1;height:14px;background:#e6dccd;border-radius:7px;overflow:hidden}.bhp i{display:block;height:100%;background:linear-gradient(#ff8fb1,#ff4f7b);transition:width .4s}
   .ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;z-index:20;background:rgba(15,25,40,.55)}
   .ov.on{display:flex}
   .card{background:#fffaf0;border:4px solid #2e9e6b;border-radius:22px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px;box-sizing:border-box;box-shadow:0 10px 40px rgba(0,0,0,.4)}
@@ -47,7 +54,7 @@
 <div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
 <div id="rot">📱 よこむきに すると あそびやすいよ</div>
 <button id="bm" style="position:fixed;top:10px;right:10px;z-index:6;border:none;border-radius:18px;padding:8px 14px;background:rgba(255,255,255,.85);font-weight:bold;font-size:14px;font-family:inherit;display:none">☰ メニュー</button>
-<button class="k" id="bl">◀</button><button class="k" id="br">▶</button><button class="k" id="bj">ジャンプ</button>
+<button class="k" id="bl">◀</button><button class="k" id="br">▶</button><button class="k" id="bw">🚿<br>あらう</button><button class="k" id="bj">ジャンプ</button>
 <div class="ov" id="ovCard"><div class="card" id="card"></div></div>
 <div class="ov on" id="pass"><div class="card"><h2>ありがとうアドベンチャー</h2><p>ありがとうグループ メンバーむけの まなびゲームです。<br>あいことばを いれてね。</p><input id="pw" type="password" autocomplete="off" placeholder="あいことば"><div id="pwmsg" style="color:#c0392b;min-height:20px;font-size:14px"></div><button class="btn" id="pwgo">はいる</button></div></div>
 <script>
@@ -62,7 +69,7 @@ const PASS_HASH='';
 function build(spec){
   const toks=spec.split(/\s+/).filter(Boolean);let W=0;const parts=[];
   for(const t of toks){const k=t[0],n=parseInt(t.slice(1))||0;let w=0;
-    if(k==='f')w=n;else if(k==='p')w=n;else if(k==='H')w=6;else if(k==='Q')w=5;else if(k==='E')w=8;else if(k==='N')w=5;else if(k==='B')w=8;
+    if(k==='f')w=n;else if(k==='p')w=n;else if(k==='H')w=6;else if(k==='Q')w=5;else if(k==='E')w=8;else if(k==='N')w=5;else if(k==='B')w=8;else if(k==='M')w=7;else if(k==='K')w=14;
     parts.push({k,n,w,x:W});W+=w;}
   const rows=Array.from({length:12},()=>Array(W).fill('.'));
   const put=(x,y,c)=>{if(x>=0&&x<W&&y>=0&&y<12)rows[y][x]=c;};
@@ -73,6 +80,8 @@ function build(spec){
     if(p.k==='E'){put(p.x+4,8,'e');put(p.x+2,7,'o');put(p.x+6,7,'o');}
     if(p.k==='N'){put(p.x+2,8,'N');}
     if(p.k==='B'){for(let i=3;i<=5;i++){put(p.x+i,7,'=');put(p.x+i,6,'o');}}
+    if(p.k==='M'){for(let y=6;y<=8;y++)put(p.x+4,y,'m');put(p.x+2,8,'o');put(p.x+6,8,'o');}
+    if(p.k==='K'){put(p.x+9,8,'X');put(p.x+2,8,'o');put(p.x+3,8,'o');}
   }
   put(2,8,'P');const last=parts[parts.length-1];put(last.x+4,8,'F');
   return rows.map(r=>r.join(''));
@@ -163,7 +172,68 @@ const STAGES=[
      {t:'わからないまま 進める',ok:false,fb:'あとで大きなミスになることがあります。'},
      {t:'自分で 見に行く・調べて イメージを つくる',ok:true,fb:'イメージがつかなければ、自分で見に行く。それが近道です。'}],key:'イメージがつかなければ 見に行く'},
    {type:'info',tag:'チーム',title:'事務員さんにも ありがとう',body:'事務員さんも、<b>ありがとうグループ</b>の大事な仲間です。<br>助けてもらったら、ひとこと「ありがとう」。それが、チーム全体の「ありがとうシステム」になります。',key:'事務員さんにも「ありがとう」を'}],
-  summary:['金額は まず 自分で 資料を見て 確かめる','見てもわからない時は「見た資料」と「聞きたいこと」を まとめて質問','事務員さんにも「ありがとう」を つたえる']}
+  summary:['金額は まず 自分で 資料を見て 確かめる','見てもわからない時は「見た資料」と「聞きたいこと」を まとめて質問','事務員さんにも「ありがとう」を つたえる']},
+ {id:'b1',name:'ボス1：うみの ぬし',theme:'sea',water:true,goal:'うみの ぬし「ぷんぷんクジラ」を、これまでの まなびで えがおに しよう！（ジャンプで ひとかき およぐよ）',
+  map:build('f7 H Q E H B Q N E H Q K f9'),
+  npcs:[{name:'にんぎょの おねえさん',lines:['うみの ぬしは、ぷんぷんしていて だれも ちかづけないの。','でも「ありがとう」が とどくと、きっと やさしい クジラに もどるわ。','これまで まなんだことを 思い出して、こたえてあげてね！']}],
+  cards:[
+   {type:'info',tag:'ふりかえり',title:'ありがとうシステムの おさらい',body:'・感謝は、あとから ついてくる<br>・感想を聞く場面は、誘導しない・だまっても待つ<br>・ご案内は「取れたら」ではなく、あたりまえ<br>・トイレ掃除の無料は、社会貢献がはじまり。「1か所・便器だけ」',key:'この 4つが ありがとうの きほん'},
+   {type:'choice',tag:'ふりかえりクイズ',title:'ご案内の きもち',say:'お客様に「ご案内」をするときの、いちばん大事な気持ちは？',opts:[
+     {t:'とにかく 売りこんで、取れるだけ 取る',ok:false,fb:'売りこみが目的になると、お客様に伝わってしまいます。'},
+     {t:'あとで こまらないための ご案内をする',ok:true,fb:'その通り。お客様のあとの安心のための案内です。だから断られても、大事なところは必ず伝えます。'}],key:'ご案内は 「あとで こまらないため」'},
+   {type:'choice',tag:'ふりかえりクイズ',title:'無料の いちばんの きもち',say:'トイレ掃除を無料にしている、いちばん大事な気持ちは？',opts:[
+     {t:'集客のため',ok:false,fb:'集客の効果は、あとから付いてきたものです。'},
+     {t:'こまっているお母さんの 力に なりたい',ok:true,fb:'はじまりは社会貢献。順番は「社会貢献が先」です。'}],key:'はじまりは 社会貢献'}],
+  boss:{name:'ぷんぷんクジラ',kind:'whale',intro:'ぷんぷんクジラ「ウォォ… だれも ぼくに ありがとうって いってくれない…」',
+   qs:[
+    {tag:'ボスの もんだい',title:'かえりぎわ',say:'玄関で、お客様とお別れするとき。どうする？',opts:[
+      {t:'「口コミ、おねがいしますね！」',ok:false,fb:'お願いが先になると、感謝が伝わりません。'},
+      {t:'「ありがとうございました！」と、自分から ちょくせつ つたえる',ok:true,fb:'最後は 自分から「ありがとうございました」。'},
+      {t:'だまって 帰る',ok:false,fb:'事務的に帰ると、気持ちが伝わりません。'}],key:'最後は 自分から「ありがとうございました」'},
+    {tag:'ボスの もんだい',title:'しずかな じかん',say:'「いかがでしたか？」と聞いたあと、お客様がだまってしまいました。',opts:[
+      {t:'すぐに「きれいですよね！」と言葉を かぶせる',ok:false,fb:'言葉を奪うと、本音が出てきません。'},
+      {t:'笑顔で 10秒でも 待つ',ok:true,fb:'沈黙をこわがらず、お客様自身の言葉を待ちます。'}],key:'しずかな じかんを こわがらない'},
+    {tag:'ボスの もんだい',title:'「トイレも ぜんぶ！」',say:'お客様に「トイレも全部おねがい！」と言われました。',opts:[
+      {t:'「はい、全部 無料で やります」',ok:false,fb:'無料は「1か所・便器だけ」。期待が広がるとクレームになります。'},
+      {t:'「1か所、便器だけ 無料です」と 先に伝える',ok:true,fb:'範囲は先に伝えます。'}],key:'1か所・便器だけ、先に つたえる'},
+    {tag:'ボスの もんだい',title:'ことわられたら',say:'3点セットを、ことわられてしまいました。',opts:[
+      {t:'「そうですか、では以上です」',ok:false,fb:'大事なところを伝えそびれます。'},
+      {t:'「ドレンホースだけでも」と、理由を添えて ご案内する',ok:true,fb:'最低ラインは、断られても必ずご案内。'}],key:'ことわられても ドレンホースだけは'},
+    {tag:'ボスの もんだい',title:'「なんで 無料？」',say:'お客様に、無料の理由を聞かれました。',opts:[
+      {t:'「口コミを書いてくれたら 無料です」',ok:false,fb:'条件をつけると、取引になってしまいます。'},
+      {t:'「お家のお母さんが すこしでも らくに なれば」と 答える',ok:true,fb:'はじまりの気持ちをそのまま。'}],key:'理由は「お母さんが すこしでも らくに」'}]},
+  summary:['ぷんぷんクジラを ありがとうで えがおに できた！','感謝・聞き方・ご案内・無料トイレの 4つが ありがとうの きほん']},
+
+ {id:'b2',name:'ボス2：くろカビの どうくつ',theme:'cave',washer:true,goal:'🚿 洗浄機の みずで、道を ふさぐ くろカビを あらおう！ ボスは「くろカビ大王」。心の カビに 勝つ ステージ。',
+  map:build('f7 H M Q E H M Q E B M Q H M E K f9'),
+  npcs:[],
+  cards:[
+   {type:'info',tag:'マインドセット',title:'くろカビは ほうっておくと ふえる',body:'「あとで やろう」「どうせ むり」「こわい」。<br>小さな気持ちも、ほうっておくと 心のカビに なります。<br>気づいたら、<b>名前をつけて</b>、洗いおとしましょう。',key:'気づいたら 名前をつけて あらう'},
+   {type:'choice',tag:'ばめんクイズ',title:'他責カビ',say:'「うまくいかないのは、会社や まわりの せいだ」という声がします。どう洗う？',opts:[
+     {t:'もっと もんくを 言う',ok:false,fb:'文句は カビを ふやすだけです。'},
+     {t:'「自分に できること」を ひとつ 決める',ok:true,fb:'人のせいにしていると、動けません。自分にできる一歩を決めましょう。'}],key:'自分にできる ひとつを 決める'},
+   {type:'choice',tag:'ばめんクイズ',title:'理由さがしカビ',say:'「お金がたまったら」「時期が来たら」始めよう…。どう洗う？',opts:[
+     {t:'お金が たまるまで 待つ',ok:false,fb:'待つ理由は、いつまでも見つかります。'},
+     {t:'今 できる 小さな一歩を 決める',ok:true,fb:'条件がそろうのを待たず、今できる小さな一歩から。'}],key:'今できる 小さな一歩を 決める'}],
+  boss:{name:'くろカビ大王',kind:'mold',intro:'くろカビ大王「ふっふっふ… おまえの 心にも すんでるぞ。『むり』『あとで』『こわい』…」',
+   qs:[
+    {tag:'ボスの もんだい',title:'他責カビ',say:'「うまくいかないのは、まわりの せいだ」',opts:[
+      {t:'そうだ、まわりが わるい',ok:false,fb:'人のせいにすると、自分では動けなくなります。'},
+      {t:'「自分に できること」を ひとつ 決めて、やる',ok:true,fb:'自分で動ける一歩に切りかえます。'}],key:'自分に できる 一歩を 決める'},
+    {tag:'ボスの もんだい',title:'理由さがしカビ',say:'「お金が たまったら 始める」「時期が きたら」',opts:[
+      {t:'条件が そろうまで 待つ',ok:false,fb:'待つ理由は、いつまでも見つかります。'},
+      {t:'今 できる 小さな一歩を 決める',ok:true,fb:'小さな一歩なら、今できます。'}],key:'今できる 小さな一歩'},
+    {tag:'ボスの もんだい',title:'正解まちカビ',say:'「正解や 保証が わかるまで、決められない」',opts:[
+      {t:'保証が 出るまで ずっと 待つ',ok:false,fb:'正解を待つほど、動けなくなります。'},
+      {t:'まず 小さく やってみて、やりながら 直す',ok:true,fb:'動きながら 正解に 近づけます。'}],key:'小さく やって、やりながら 直す'},
+    {tag:'ボスの もんだい',title:'かかえこみカビ',say:'「見せるのが こわい。ひとりで 自己流で やっちゃえ」',opts:[
+      {t:'だれにも 言わず 自己流で 進める',ok:false,fb:'抱えこむと、まちがった方向に進みやすくなります。'},
+      {t:'見せて、相談する',ok:true,fb:'相談すると、早く正しい方向に進めます。'}],key:'見せて 相談する'},
+    {tag:'ボスの もんだい',title:'しっぱいこわいカビ',say:'「しっぱいが こわいから、やらない」',opts:[
+      {t:'しっぱいしないよう、何もしない',ok:false,fb:'何もしないと、何も変わりません。'},
+      {t:'小さく はじめる（しっぱいしても 小さいから だいじょうぶ）',ok:true,fb:'小さく始めれば、失敗も小さく済みます。'}],key:'小さく はじめる'}]},
+  summary:['くろカビ大王を ありがとうで えがおに できた！','他責・理由さがし・正解まち・かかえこみ・しっぱいこわい。気づいたら 名前をつけて 一歩']}
+
 ];
 
 // ================= 基本 =================
@@ -183,17 +253,17 @@ const persist=()=>{try{localStorage.setItem('arigatouMario1',JSON.stringify(save
 let mode='menu',stageIdx=0,S=null,cam=0,gt=0,paused=false;
 
 // ---- input
-const keys={};let touchL=false,touchR=false,touchJ=false;
+const keys={};let touchL=false,touchR=false,touchJ=false,touchW=false;
 addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
 addEventListener('keyup',e=>keys[e.code]=false);
 function hold(id,on,off){const b=$(id);const d=e=>{e.preventDefault();b.classList.add('p');on();};const u=e=>{e.preventDefault();b.classList.remove('p');off();};b.addEventListener('pointerdown',d);b.addEventListener('pointerup',u);b.addEventListener('pointercancel',u);b.addEventListener('pointerleave',u);}
-hold('bl',()=>touchL=true,()=>touchL=false);hold('br',()=>touchR=true,()=>touchR=false);hold('bj',()=>touchJ=true,()=>touchJ=false);
-const L=()=>keys.ArrowLeft||keys.KeyA||touchL,R=()=>keys.ArrowRight||keys.KeyD||touchR,J=()=>keys.Space||keys.ArrowUp||keys.KeyW||touchJ;
+hold('bl',()=>touchL=true,()=>touchL=false);hold('br',()=>touchR=true,()=>touchR=false);hold('bj',()=>touchJ=true,()=>touchJ=false);hold('bw',()=>touchW=true,()=>touchW=false);
+const L=()=>keys.ArrowLeft||keys.KeyA||touchL,R=()=>keys.ArrowRight||keys.KeyD||touchR,J=()=>keys.Space||keys.ArrowUp||keys.KeyW||touchJ,W_=()=>keys.KeyX||keys.KeyK||keys.ShiftLeft||touchW;
 
 // ================= ステージ読み込み =================
 function loadStage(i){
   const st=STAGES[i];S={st,i,rows:st.map.map(r=>r.split('')),W:st.map[0].length,H:st.map.length,hearts:[],enemies:[],npcs:[],blocks:{},cardList:st.cards.slice(),npcList:st.npcs.slice(),got:0,cardsDone:0,total:st.cards.length,
-    p:{x:0,y:0,w:28,h:40,vx:0,vy:0,on:false,face:1,coy:0,buf:0,inv:0,anim:0},start:null,goal:null,fx:[],checkpoint:null,tips:0};
+    p:{x:0,y:0,w:28,h:40,vx:0,vy:0,on:false,face:1,coy:0,buf:0,inv:0,anim:0},start:null,goal:null,fx:[],checkpoint:null,tips:0,shots:[],mold:{},boss:null,shake:0,wcd:0};
   let ci=0,ni=0;
   for(let y=0;y<S.H;y++)for(let x=0;x<S.W;x++){const c=S.rows[y][x];
     if(c==='P'){S.start={x:x*TS+8,y:y*TS+TS-40};S.rows[y][x]='.';}
@@ -201,22 +271,36 @@ function loadStage(i){
     else if(c==='e'){S.enemies.push({x:x*TS+6,y:y*TS+TS-30,w:34,h:30,vx:-60,dir:-1,alive:true,smile:0,ox:x*TS});S.rows[y][x]='.';}
     else if(c==='N'){S.npcs.push({x:x*TS+TS/2,y:y*TS+TS,data:S.npcList[ni++]||{name:'ひと',lines:['…']},talked:false});S.rows[y][x]='.';}
     else if(c==='?'){S.blocks[x+','+y]={card:S.cardList[ci++]||null,used:false,bump:0};}
-    else if(c==='F'){S.goal={x:x*TS,y:y*TS};S.rows[y][x]='.';}}
+    else if(c==='F'){S.goal={x:x*TS,y:y*TS};S.rows[y][x]='.';}
+    else if(c==='m'){S.mold[x+','+y]=3;}
+    else if(c==='X'&&st.boss){S.boss={x:x*TS,def:st.boss,hp:st.boss.qs.length>4?4:st.boss.qs.length,max:st.boss.qs.length>4?4:st.boss.qs.length,active:false,done:false,mood:0,hit:0,qi:0};S.rows[y][x]='.';}}
   S.p.x=S.start.x;S.p.y=S.start.y;S.checkpoint={x:S.p.x,y:S.p.y};cam=0;
 }
 const tileAt=(x,y)=>{if(x<0||x>=S.W)return'#';if(y<0)return'.';if(y>=S.H)return'.';return S.rows[y][x];};
-const solid=c=>c==='#'||c==='='||c==='?';
+const solid=c=>c==='#'||c==='='||c==='?'||c==='m';
 
 // ================= 更新 =================
 function update(dt){
   if(paused)return;gt+=dt;const p=S.p;
   const ax=(R()?1:0)-(L()?1:0);
-  const tv=ax*250;p.vx+=(tv-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;
+  const wat=!!S.st.water;const tv=ax*(wat?200:250);p.vx+=(tv-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;
+  if(wat){ if(J()&&!p.jh){p.vy=-270;p.jh=true;sJump();} if(!J())p.jh=false; p.vy=Math.min(p.vy+620*dt,170); }
+  else{
   p.coy=p.on?.1:Math.max(0,p.coy-dt);p.buf=J()?(p.buf>0?p.buf-dt:(p.jh?0:.12)):0;
   if(!J())p.jh=false;
   if(p.buf>0&&p.coy>0&&!p.jh){p.vy=-640;p.on=false;p.coy=0;p.buf=0;p.jh=true;sJump();}
   if(!J()&&p.vy<-200)p.vy=-200; // かるく おすと ひくく
-  p.vy=Math.min(p.vy+1800*dt,900);
+  p.vy=Math.min(p.vy+1800*dt,900);}
+  // 洗浄機（みずでっぽう）
+  S.wcd=Math.max(0,S.wcd-dt);if(S.st.washer&&W_()&&S.wcd<=0){S.wcd=.28;S.shots.push({x:p.x+(p.face>0?p.w:-6),y:p.y+14,vx:p.face*470,vy:-70,t:1.1});tone(700,.08,'triangle',.03);}
+  for(const sh of S.shots){sh.t-=dt;sh.x+=sh.vx*dt;sh.y+=sh.vy*dt;sh.vy+=260*dt;const tx=Math.floor(sh.x/TS),ty=Math.floor(sh.y/TS),c=tileAt(tx,ty);
+    if(c==='m'){const k=tx+','+ty;S.mold[k]--;sh.t=0;burst(sh.x,sh.y,'#aee6ff',6);if(S.mold[k]<=0){S.rows[ty][tx]='.';burst(tx*TS+22,ty*TS+22,'#ff8fb1',10);S.got++;save.hearts++;sHeart();}else tone(380,.06,'sine',.04);}
+    else if(solid(c)||c==='#'){sh.t=0;burst(sh.x,sh.y,'#ffffff',3);}
+    for(const e of S.enemies)if(e.alive&&sh.t>0&&sh.x>e.x&&sh.x<e.x+e.w&&sh.y>e.y&&sh.y<e.y+e.h){e.alive=false;e.smile=0;sh.t=0;sStomp();burst(e.x+e.w/2,e.y,'#ffd23f',8);S.got+=1;save.hearts+=1;}}
+  S.shots=S.shots.filter(sh=>sh.t>0);
+  // ボス
+  const B=S.boss;if(B&&!B.done){const gate=B.x-150;if(p.x>gate){p.x=gate;p.vx=0;}if(!B.active&&p.x>B.x-430){B.active=true;startBoss();}}
+  S.shake=Math.max(0,S.shake-dt*3);
   moveX(p,p.vx*dt);moveY(p,p.vy*dt);
   p.anim+=Math.abs(p.vx)*dt*.05;p.inv=Math.max(0,p.inv-dt);
   if(p.y>S.H*TS+120){respawn('おちちゃった！ あわてず ゆっくり。');}
@@ -235,7 +319,7 @@ function update(dt){
   // npc talk
   S.nearNpc=null;for(const n of S.npcs)if(Math.abs(n.x-(p.x+p.w/2))<60&&Math.abs(n.y-(p.y+p.h))<30)S.nearNpc=n;
   // goal
-  if(S.goal&&p.x+p.w>S.goal.x-2&&Math.abs(p.y-S.goal.y)<TS*5){if(S.cardsDone>=S.total)finishStage();else{p.x=S.goal.x-p.w-4;p.vx=0;if(toastT<1.2)toast('？ブロックの まなびカードを あつめてね（'+S.cardsDone+'/'+S.total+'）');}}
+  if(S.goal&&p.x+p.w>S.goal.x-2&&Math.abs(p.y-S.goal.y)<TS*5){if(S.cardsDone>=S.total&&(!S.boss||S.boss.done))finishStage();else{p.x=S.goal.x-p.w-4;p.vx=0;if(toastT<1.2)toast(S.cardsDone<S.total?'？ブロックの まなびカードを あつめてね（'+S.cardsDone+'/'+S.total+'）':'ボスを えがおに してから ゴールへ！');}}
   // fx
   for(const f of S.fx){f.t-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vy+=500*dt;}S.fx=S.fx.filter(f=>f.t>0);
   cam=clamp(p.x+p.w/2-LW*.4,0,S.W*TS-LW);
@@ -254,8 +338,8 @@ function respawn(msg){const p=S.p;p.x=S.checkpoint.x;p.y=S.checkpoint.y;p.vx=p.v
 let toastT=0,toastMsg='';function toast(m){toastMsg=m;toastT=2.5;}
 
 // ================= カード（まなび） =================
-function showOverlay(html){paused=true;$('card').innerHTML=html;$('ovCard').classList.add('on');$('card').scrollTop=0;}
-function closeOverlay(){$('ovCard').classList.remove('on');paused=false;}
+function showOverlay(html,boss){paused=true;$('card').innerHTML=html;$('ovCard').classList.toggle('boss',!!boss);$('ovCard').classList.add('on');$('card').scrollTop=0;}
+function closeOverlay(){$('ovCard').classList.remove('on');$('ovCard').classList.remove('boss');paused=false;}
 function openCard(c,done){
   const key=S.st.id+':'+(c.title||'');
   const finish=()=>{if(!save.cards[key]){save.cards[key]=1;}S.cardsDone++;persist();closeOverlay();done&&done();};
@@ -284,11 +368,26 @@ addEventListener('keydown',e=>{if(e.code==='KeyE'||e.code==='Enter')tryTalk();})
 function tryTalk(){if(mode==='play'&&!paused&&S.nearNpc)talkNpc(S.nearNpc);}
 cv.addEventListener('pointerdown',e=>{if(mode==='play'&&!paused&&S.nearNpc){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*LW,y=(e.clientY-r.top)/r.height*LH;const nx=S.nearNpc.x-cam,ny=S.nearNpc.y;if(Math.abs(x-nx)<60&&Math.abs(y-ny+40)<70)talkNpc(S.nearNpc);}});
 
+
+// ================= ボス戦（クイズに せいかいすると ありがとうが とどく） =================
+function bossBar(B){const hearts=Array.from({length:B.max},(_,i)=>i<B.hp?'❤':'🤍').join('');return `<div class="bbar"><span>${B.def.name}</span><div class="bhp"><i style="width:${B.hp/B.max*100}%"></i></div><span>${hearts}</span></div>`;}
+function startBoss(){const B=S.boss;paused=true;B.qi=0;
+  showOverlay(`<span class="tag">ボス</span><h2>${B.def.name}</h2><div class="say">${B.def.intro}</div><p style="font-size:14px;color:#556">せいかいすると「ありがとう」が とどいて、ボスが えがおに なっていくよ。まちがえても だいじょうぶ。ヒントを みて もういちど！</p><div class="row"><button class="btn pink" id="bgo">たたかい（？）スタート</button></div>`,true);
+  $('bgo').onclick=()=>bossQuestion();}
+function bossQuestion(){const B=S.boss,qs=B.def.qs,q=qs[B.qi%qs.length];
+  showOverlay(`${bossBar(B)}<span class="tag">${q.tag||'ボスの もんだい'}</span><h2>${q.title}</h2>${q.say?`<div class="say">${q.say}</div>`:''}<div id="opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o.t}</button>`).join('')}</div><div id="fb"></div>`,true);
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const o=q.opts[+b.dataset.i];
+    if(o.ok){document.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');B.hp--;B.hit=1;B.mood=B.hp<=0?2:1;S.got+=3;save.hearts+=3;sHeart();S.shake=0;
+      const last=B.hp<=0;$('fb').innerHTML=`<div class="fb ok">⭕ ${o.fb}</div>${q.key?`<div class="keyp">💡 ${q.key}</div>`:''}<div class="row"><button class="btn" id="bn">${last?'ボスが えがおに なった！':'つぎの もんだい'}</button></div>`;
+      $('bn').onclick=()=>{B.qi++;persist();if(last)endBoss();else bossQuestion();};}
+    else{b.classList.add('ng');b.disabled=true;save.hearts=Math.max(0,save.hearts-1);S.shake=1;sHurt();$('fb').innerHTML=`<div class="fb ng">😤 ボスが ぷんぷんしてる！ ${o.fb}<br>べつの こたえを えらんでみよう！</div>`;}});}
+function endBoss(){const B=S.boss;B.done=true;B.mood=2;closeOverlay();sGoal();burst(B.x+60,300,'#ff8fb1',30);burst(B.x+60,300,'#ffd23f',20);toast(B.def.name+' が えがおに なった！ ゴールへ すすもう！');}
+
 // ================= ステージ開始・クリア =================
 function startStage(i){stageIdx=i;loadStage(i);const st=S.st;
-  showOverlay(`<span class="tag">ステージ ${i+1}</span><h2>${st.name}</h2><p>${st.goal}</p><p style="font-size:14px;color:#556">▶ ハート（ありがとう）を あつめて ゴールへ！<br>？ブロックを 下から ジャンプで たたくと「まなびカード」が でるよ。<br>ぷんぷんくんは 上から ふんで 笑顔に しよう。<br>ひとに 近づいて タップ（パソコンは Eキー）で おはなし。<br>パソコン：← → で うごく・スペースで ジャンプ</p><div class="row"><button class="btn pink" id="go">スタート！</button></div>`);
+  showOverlay(`<span class="tag">ステージ ${i+1}</span><h2>${st.name}</h2><p>${st.goal}</p><p style="font-size:14px;color:#556">▶ ハート（ありがとう）を あつめて ゴールへ！<br>？ブロックを 下から ジャンプで たたくと「まなびカード」が でるよ。<br>ぷんぷんくんは 上から ふんで 笑顔に しよう。<br>ひとに 近づいて タップ（パソコンは Eキー）で おはなし。<br>パソコン：← → で うごく・スペースで ジャンプ${st.washer?'<br>🚿「あらう」ボタン（パソコンは Xキー）で 洗浄機の みずを だして、くろカビを あらおう！':''}${st.water?'<br>🌊 みずの なか！ ジャンプを おすたびに ひとかき およぐよ。':''}</p><div class="row"><button class="btn pink" id="go">スタート！</button></div>`);
   $('go').onclick=()=>{closeOverlay();mode='play';setButtons(true);};}
-function setButtons(on){$('bm').style.display=on?'block':'none';['bl','br','bj'].forEach(id=>$(id).classList.toggle('on',on&&isTouch));}
+function setButtons(on){$('bw').classList.toggle('on',on&&isTouch&&!!(S&&S.st.washer));$('bm').style.display=on?'block':'none';['bl','br','bj'].forEach(id=>$(id).classList.toggle('on',on&&isTouch));}
 function finishStage(){if(mode!=='play')return;mode='clear';setButtons(false);sGoal();save.cleared[S.st.id]=true;persist();
   const st=S.st;showOverlay(`<span class="tag">ステージクリア！</span><h2>${st.name}</h2><p>まなびカード：${S.cardsDone}/${S.total}　 ハート：${S.got}</p><p><b>今日の まなび</b></p>${st.summary.map(t=>`<div class="keyp">💡 ${t}</div>`).join('')}<div class="row"><button class="btn" id="nx">${stageIdx<STAGES.length-1?'つぎの ステージへ':'おわり'}</button><button class="btn pink" id="re">もういちど</button></div>`);
   $('nx').onclick=()=>{closeOverlay();if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{mode='menu';menu();}};$('re').onclick=()=>{closeOverlay();startStage(stageIdx);};}
@@ -296,13 +395,17 @@ function menu(){mode='menu';setButtons(false);showOverlay(`<h2>ありがとう�
   document.querySelectorAll('#card .opt').forEach(b=>b.onclick=()=>{closeOverlay();startStage(+b.dataset.i);});}
 
 // ================= 描画 =================
-function drawBG(){const th=S.st.theme;const sk={day:['#6fc8ff','#e8f6ff'],night:['#1b1a4a','#5a3a8a'],sunset:['#ff9a62','#ffe3c0'],neon:['#1a1038','#6a2a8a']}[th]||['#6fc8ff','#e8f6ff'];
+function drawBG(){const th=S.st.theme;const sk={day:['#6fc8ff','#e8f6ff'],night:['#1b1a4a','#5a3a8a'],sunset:['#ff9a62','#ffe3c0'],neon:['#1a1038','#6a2a8a'],sea:['#1a6aa8','#7fe0f0'],cave:['#0c0a16','#2a2038']}[th]||['#6fc8ff','#e8f6ff'];
   const g=ctx.createLinearGradient(0,0,0,LH);g.addColorStop(0,sk[0]);g.addColorStop(1,sk[1]);ctx.fillStyle=g;ctx.fillRect(0,0,LW,LH);
   for(let i=0;i<7;i++){const x=((i*260-cam*.3+gt*6)%(LW+300)+LW+300)%(LW+300)-150,y=60+(i%3)*50;ctx.fillStyle=th==='day'||th==='sunset'?'rgba(255,255,255,.85)':'rgba(255,255,255,.12)';ctx.beginPath();ctx.ellipse(x,y,60,18,0,0,7);ctx.ellipse(x+34,y-10,36,16,0,0,7);ctx.fill();}
+  if(th==='sea'){ctx.fillStyle='rgba(255,255,255,.10)';for(let i=0;i<5;i++){const x=((i*260-cam*.2)%(LW+200)+LW+200)%(LW+200)-100;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+60,0);ctx.lineTo(x+170,LH);ctx.lineTo(x+60,LH);ctx.closePath();ctx.fill();}
+    ctx.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<22;i++){const x=((i*83-cam*.4)%(LW+60)+LW+60)%(LW+60)-30,y=((LH-((gt*40+i*53)%LH)));ctx.beginPath();ctx.arc(x,y,2+(i%3),0,7);ctx.fill();}return;}
+  if(th==='cave'){ctx.fillStyle='rgba(120,90,200,.18)';for(let i=0;i<9;i++){const x=((i*170-cam*.25)%(LW+160)+LW+160)%(LW+160)-80,y=40+(i*61)%300;ctx.beginPath();ctx.arc(x,y,16+(i%3)*8,0,7);ctx.fill();}return;}
   ctx.fillStyle=th==='neon'?'#2a1a4a':'#9ad08a';for(let i=-1;i<8;i++){const x=i*220-(cam*.5)%220;ctx.beginPath();ctx.moveTo(x,LH-TS*3);ctx.quadraticCurveTo(x+110,LH-TS*3-110,x+220,LH-TS*3);ctx.fill();}}
 function drawTiles(){const c0=Math.floor(cam/TS),c1=Math.min(S.W-1,c0+Math.ceil(LW/TS)+1);
   for(let y=0;y<S.H;y++)for(let x=c0;x<=c1;x++){const c=S.rows[y][x],px=x*TS-cam,py=y*TS;
-    if(c==='#'){const up=tileAt(x,y-1)!=='#';ctx.fillStyle='#b5834f';ctx.fillRect(px,py,TS+1,TS+1);ctx.fillStyle='#9a6a3a';ctx.fillRect(px+4,py+TS-8,12,4);ctx.fillRect(px+24,py+14,10,4);if(up){ctx.fillStyle='#5fc457';ctx.fillRect(px,py,TS+1,10);ctx.fillStyle='#7ee06f';ctx.fillRect(px,py,TS+1,4);}}
+    if(c==='#'){const up=tileAt(x,y-1)!=='#';const th2=S.st.theme;ctx.fillStyle=th2==='sea'?'#e8d6a0':th2==='cave'?'#4a4258':'#b5834f';ctx.fillRect(px,py,TS+1,TS+1);ctx.fillStyle='#9a6a3a';ctx.fillRect(px+4,py+TS-8,12,4);ctx.fillRect(px+24,py+14,10,4);if(up){ctx.fillStyle=th2==='sea'?'#f4e8bc':th2==='cave'?'#6a5a80':'#5fc457';ctx.fillRect(px,py,TS+1,10);ctx.fillStyle=th2==='sea'?'#fff4d0':th2==='cave'?'#8a78a8':'#7ee06f';ctx.fillRect(px,py,TS+1,4);if(th2==='sea'&&(x*7)%5===0){ctx.strokeStyle='#2fa86a';ctx.lineWidth=4;for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(px+10+k*10,py);ctx.quadraticCurveTo(px+10+k*10+Math.sin(gt*2+k+x)*6,py-18,px+10+k*10,py-34);ctx.stroke();}}}}
+    else if(c==='m'){ctx.fillStyle='#1c1c1c';rr(px+1,py+1,TS-2,TS-2,12);ctx.fill();ctx.fillStyle='#3a4a30';for(let k=0;k<5;k++)ctx.fillRect(px+6+(k*9)%30,py+6+(k*13)%30,4,4);const hp=S.mold[x+','+y]||3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+15,py+20,5,0,7);ctx.arc(px+30,py+20,5,0,7);ctx.fill();ctx.fillStyle='#000';ctx.fillRect(px+14,py+19,3,4);ctx.fillRect(px+29,py+19,3,4);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+22,py+34);ctx.lineTo(px+24+(3-hp)*2,py+34);ctx.stroke();}
     else if(c==='='){ctx.fillStyle='#d9835a';ctx.fillRect(px,py,TS,TS);ctx.strokeStyle='#a85a38';ctx.lineWidth=2;ctx.strokeRect(px+1,py+1,TS-2,TS-2);ctx.beginPath();ctx.moveTo(px,py+TS/2);ctx.lineTo(px+TS,py+TS/2);ctx.moveTo(px+TS/2,py);ctx.lineTo(px+TS/2,py+TS/2);ctx.moveTo(px+TS/4,py+TS/2);ctx.lineTo(px+TS/4,py+TS);ctx.moveTo(px+TS*.75,py+TS/2);ctx.lineTo(px+TS*.75,py+TS);ctx.stroke();}
     else if(c==='?'){const b=S.blocks[x+','+y],bump=b?b.bump:0,off=-Math.sin(bump*Math.PI)*10;ctx.fillStyle='#ffd23f';ctx.fillRect(px,py+off,TS,TS);ctx.strokeStyle='#d49a10';ctx.lineWidth=3;ctx.strokeRect(px+2,py+2+off,TS-4,TS-4);ctx.fillStyle='#ff4f7b';heart(px+TS/2,py+TS/2-2+off,10);ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('学',px+TS/2,py+TS-8+off);}}}
 function heart(x,y,s){ctx.beginPath();ctx.moveTo(x,y+s*.9);ctx.bezierCurveTo(x-s*1.3,y,x-s*.7,y-s*.9,x,y-s*.35);ctx.bezierCurveTo(x+s*.7,y-s*.9,x+s*1.3,y,x,y+s*.9);ctx.fill();}
@@ -315,6 +418,7 @@ function drawPlayer(){const p=S.p;if(p.inv>0&&Math.floor(gt*20)%2)return;const x
   ctx.fillStyle='#222';ctx.fillRect(3,-36,2.5,4);ctx.fillStyle='#ff9fb0';ctx.fillRect(4,-31,5,2.5);ctx.restore();}
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
 function drawEnemies(){for(const e of S.enemies){const x=e.x-cam;if(x<-60||x>LW+60)continue;
+  if(S.st.theme==='sea'&&e.alive){const d=e.vx>0?1:-1;ctx.save();ctx.translate(x+17,e.y+16+Math.sin(gt*3+e.ox)*4);ctx.scale(d,1);ctx.fillStyle='#6a5a8a';ctx.beginPath();ctx.ellipse(0,0,18,12,0,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(-30,-10+Math.sin(gt*8)*3);ctx.lineTo(-30,10-Math.sin(gt*8)*3);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(8,-3,4,0,7);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(8,-4,3,4);ctx.strokeStyle='#222';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(3,-9);ctx.lineTo(12,-6);ctx.stroke();ctx.restore();continue;}
   if(!e.alive){const a=Math.max(0,1-e.smile);ctx.globalAlpha=a;ctx.fillStyle='#ffb0c8';heart(x+17,e.y-e.smile*60,12);ctx.globalAlpha=1;continue;}
   ctx.fillStyle='#6a5a8a';ctx.beginPath();ctx.ellipse(x+17,e.y+18,18,14,0,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+10,e.y+14,4,0,7);ctx.arc(x+24,e.y+14,4,0,7);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(x+10,e.y+13,3,4);ctx.fillRect(x+22,e.y+13,3,4);
   ctx.strokeStyle='#222';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x+5,e.y+7);ctx.lineTo(x+13,e.y+10);ctx.moveTo(x+29,e.y+7);ctx.lineTo(x+21,e.y+10);ctx.stroke();
@@ -322,8 +426,32 @@ function drawEnemies(){for(const e of S.enemies){const x=e.x-cam;if(x<-60||x>LW+
 function drawObjs(){for(const h of S.hearts){if(h.t)continue;const x=h.x-cam;if(x<-30||x>LW+30)continue;ctx.fillStyle='#ff4f7b';heart(x,h.y+Math.sin(gt*4+h.ph)*3,9);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillRect(x-5,h.y-6+Math.sin(gt*4+h.ph)*3,3,3);}
   for(const n of S.npcs){const x=n.x-cam;if(x<-40||x>LW+40)continue;ctx.fillStyle='#e8b98a';ctx.beginPath();ctx.arc(x,n.y-40,11,0,7);ctx.fill();ctx.fillStyle='#d05a8a';rr(x-12,n.y-30,24,30,6);ctx.fill();ctx.fillStyle='#5a3a22';ctx.beginPath();ctx.arc(x,n.y-44,11,Math.PI,0);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(x+2,n.y-41,2,4);
     if(!n.talked){ctx.fillStyle='#ff4f7b';heart(x,n.y-62+Math.sin(gt*4)*3,7);}if(S.nearNpc===n){ctx.fillStyle='rgba(255,255,255,.95)';rr(x-62,n.y-98,124,24,12);ctx.fill();ctx.fillStyle='#d6396a';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('タップで はなす',x,n.y-82);}}
-  if(S.goal){const x=S.goal.x-cam;ctx.fillStyle='#fff';ctx.fillRect(x+16,S.goal.y-TS*4,4,TS*5);ctx.fillStyle='#ff4f7b';ctx.beginPath();ctx.moveTo(x+20,S.goal.y-TS*4);ctx.lineTo(x+70,S.goal.y-TS*3.4+Math.sin(gt*4)*3);ctx.lineTo(x+20,S.goal.y-TS*2.8);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(S.cardsDone>=S.total?'GOAL':'🔒 '+S.cardsDone+'/'+S.total,x+42,S.goal.y-TS*3.4);}
+  if(S.goal){const x=S.goal.x-cam;ctx.fillStyle='#fff';ctx.fillRect(x+16,S.goal.y-TS*4,4,TS*5);ctx.fillStyle='#ff4f7b';ctx.beginPath();ctx.moveTo(x+20,S.goal.y-TS*4);ctx.lineTo(x+70,S.goal.y-TS*3.4+Math.sin(gt*4)*3);ctx.lineTo(x+20,S.goal.y-TS*2.8);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(S.cardsDone>=S.total&&(!S.boss||S.boss.done)?'GOAL':'🔒 '+S.cardsDone+'/'+S.total,x+42,S.goal.y-TS*3.4);}
+  for(const sh of S.shots){const x=sh.x-cam;ctx.fillStyle='rgba(160,225,255,.9)';ctx.beginPath();ctx.arc(x,sh.y,6,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,.8)';ctx.beginPath();ctx.arc(x-sh.vx*.02,sh.y+1,3.5,0,7);ctx.fill();}
+  drawBoss();
   for(const f of S.fx){ctx.fillStyle=f.c;ctx.globalAlpha=clamp(f.t*2,0,1);ctx.fillRect(f.x-cam-2,f.y-2,5,5);ctx.globalAlpha=1;}}
+
+function drawBoss(){const B=S.boss;if(!B)return;const fight=B.active&&!B.done&&paused;const x=fight?LW*.5:B.x-cam+60,gy=fight?(150+80+0):9*TS;if(x<-200||x>LW+240)return;B.hit=Math.max(0,B.hit-.02);
+  const sh=(S.shake>0?Math.sin(gt*60)*4:0)+(B.hit>0?Math.sin(gt*50)*6*B.hit:0);const bob=Math.sin(gt*2)*5,mood=B.mood;
+  ctx.save();ctx.translate(x+sh,gy-80+bob);
+  if(B.done){ctx.globalAlpha=.9;}
+  if(B.def.kind==='whale'){ctx.fillStyle='#3a6ab8';ctx.beginPath();ctx.ellipse(0,0,110,70,0,0,7);ctx.fill();ctx.fillStyle='#d8ecff';ctx.beginPath();ctx.ellipse(10,24,86,34,0,0,Math.PI);ctx.fill();
+    ctx.fillStyle='#3a6ab8';ctx.beginPath();ctx.moveTo(100,-10);ctx.quadraticCurveTo(160,-60,150,-90);ctx.quadraticCurveTo(130,-40,96,10);ctx.fill();
+    ctx.fillStyle='#6fb0ff';ctx.beginPath();ctx.ellipse(-30,-10,16,40,.5,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-44,-14,13,0,7);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(-48,-17,8,12);
+    ctx.strokeStyle='#222';ctx.lineWidth=5;ctx.beginPath();if(mood===0){ctx.moveTo(-62,-34);ctx.lineTo(-34,-24);}else if(mood===1){ctx.moveTo(-62,-26);ctx.lineTo(-34,-30);}else{ctx.arc(-44,-14,10,Math.PI*1.1,Math.PI*1.9);}ctx.stroke();
+    ctx.beginPath();if(mood===2)ctx.arc(-40,24,22,.15*Math.PI,.85*Math.PI);else{ctx.moveTo(-70,34);ctx.quadraticCurveTo(-45,mood===0?18:30,-18,34);}ctx.stroke();
+    if(mood===2){ctx.fillStyle='#ff8fb1';ctx.beginPath();ctx.ellipse(-70,10,9,5,0,0,7);ctx.fill();}}
+  else{ // くろカビ大王
+    ctx.fillStyle='#161616';for(let i=0;i<14;i++){const a=i*Math.PI/7+Math.sin(gt+i)*.15,r=82+(i%3)*16;ctx.beginPath();ctx.arc(Math.cos(a)*r*.9,Math.sin(a)*r*.75,26+(i%2)*8,0,7);ctx.fill();}
+    ctx.beginPath();ctx.ellipse(0,0,96,78,0,0,7);ctx.fill();ctx.fillStyle='#3a4a30';for(let i=0;i<24;i++){ctx.beginPath();ctx.arc(Math.cos(i*2.3)*80*Math.sqrt((i%7)/7),Math.sin(i*1.7)*62*Math.sqrt((i%5)/5),3+(i%3),0,7);ctx.fill();}
+    for(const [ex,ey] of [[-40,-22],[0,-30],[40,-22],[-18,6],[22,8]]){ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ex,ey,12,0,7);ctx.fill();ctx.fillStyle='#000';ctx.beginPath();ctx.arc(ex+2,ey+1,5,0,7);ctx.fill();}
+    ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.beginPath();if(mood===2)ctx.arc(0,28,26,.1*Math.PI,.9*Math.PI);else{ctx.moveTo(-30,44);ctx.quadraticCurveTo(0,mood===0?26:38,30,44);}ctx.stroke();
+    if(mood===0){ctx.beginPath();ctx.moveTo(-54,-44);ctx.lineTo(-26,-34);ctx.moveTo(54,-44);ctx.lineTo(26,-34);ctx.stroke();}
+    if(mood===2){ctx.fillStyle='rgba(255,143,177,.85)';ctx.beginPath();ctx.ellipse(-52,16,10,6,0,0,7);ctx.ellipse(52,16,10,6,0,0,7);ctx.fill();}}
+  ctx.restore();
+  if(!B.done){ctx.fillStyle='rgba(255,255,255,.9)';rr(x-60,gy-210,120,22,11);ctx.fill();ctx.fillStyle='#d6396a';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(B.def.name,x,gy-194);}
+  else{ctx.fillStyle='#ff4f7b';heart(x,gy-190+Math.sin(gt*4)*4,12);}}
 function drawHUD(){ctx.fillStyle='rgba(255,255,255,.85)';rr(10,10,230,34,17);ctx.fill();ctx.fillStyle='#ff4f7b';heart(30,27,8);ctx.fillStyle='#223';ctx.font='bold 16px sans-serif';ctx.textAlign='left';ctx.fillText('ありがとう '+S.got,46,33);ctx.fillText('学び '+S.cardsDone+'/'+S.total,150,33);
   if(toastT>0){ctx.globalAlpha=clamp(toastT,0,1);ctx.fillStyle='rgba(30,40,60,.85)';rr(LW/2-190,70,380,40,16);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(toastMsg,LW/2,96);ctx.globalAlpha=1;}}
 function draw(){drawBG();drawTiles();drawObjs();drawEnemies();drawPlayer();drawHUD();}
