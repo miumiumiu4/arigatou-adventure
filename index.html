@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>ありがとうアドベンチャー</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#1b2a3a;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;color:#223}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{display:block;image-rendering:auto}
+  .k{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));border:none;border-radius:50%;background:rgba(255,255,255,.55);color:#234;font-weight:bold;touch-action:none;-webkit-tap-highlight-color:transparent;display:none;z-index:5;font-family:inherit}
+  .k.on{display:block}
+  .k:active,.k.p{background:rgba(255,255,255,.85)}
+  #bl{left:14px;width:76px;height:76px;font-size:30px}#br{left:106px;width:76px;height:76px;font-size:30px}
+  #bj{right:14px;width:96px;height:96px;font-size:17px;background:rgba(255,120,150,.7);color:#fff}
+  #bj:active,#bj.p{background:rgba(255,80,120,.95)}
+  .ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;z-index:20;background:rgba(15,25,40,.55)}
+  .ov.on{display:flex}
+  .card{background:#fffaf0;border:4px solid #2e9e6b;border-radius:22px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:18px 20px;box-sizing:border-box;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  .card h2{margin:0 0 6px;font-size:clamp(18px,4.4vw,24px);color:#1d6b4a}
+  .card .tag{display:inline-block;background:#ffe27a;color:#7a5200;border-radius:12px;padding:2px 10px;font-size:12px;font-weight:bold;margin-bottom:6px}
+  .card p{margin:6px 0;font-size:clamp(14px,3.6vw,17px);line-height:1.7}
+  .say{background:#eef7f1;border-radius:14px;padding:10px 12px;margin:8px 0;font-size:clamp(14px,3.6vw,17px);line-height:1.6}
+  .opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border:3px solid #9ab;border-radius:14px;background:#fff;font-size:clamp(14px,3.6vw,16px);line-height:1.5;font-family:inherit;cursor:pointer}
+  .opt:active{background:#eef}
+  .opt.ok{border-color:#2e9e6b;background:#e8f8ee}
+  .opt.ng{border-color:#e05a5a;background:#fdeeee}
+  .fb{margin:8px 0;padding:10px 12px;border-radius:12px;font-size:clamp(14px,3.5vw,16px);line-height:1.65}
+  .fb.ok{background:#e8f8ee;color:#1d6b4a}.fb.ng{background:#fff2e0;color:#8a4a00}
+  .keyp{background:#fff3c4;border-left:6px solid #ffb400;padding:8px 12px;margin:10px 0;border-radius:8px;font-weight:bold;font-size:clamp(14px,3.6vw,16px);line-height:1.6}
+  .btn{display:inline-block;margin-top:10px;padding:12px 26px;font-size:18px;font-weight:bold;border:none;border-radius:30px;background:linear-gradient(#41c78a,#2e9e6b);color:#fff;box-shadow:0 4px 0 #1d6b4a;font-family:inherit;cursor:pointer}
+  .btn.pink{background:linear-gradient(#ff8fb1,#ff4f7b);box-shadow:0 4px 0 #b8325a}
+  .btn:active{transform:translateY(2px)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .oitem{display:inline-block;margin:4px;padding:10px 12px;border:3px solid #9ab;border-radius:12px;background:#fff;font-size:15px;cursor:pointer}
+  .oitem.sel{background:#ffe9a0;border-color:#e0a000;opacity:.5}
+  .ordered{counter-reset:o;margin:8px 0;padding:0;list-style:none}
+  .ordered li{counter-increment:o;background:#e8f8ee;border-radius:10px;padding:8px 12px;margin:5px 0;font-size:15px}
+  .ordered li::before{content:counter(o) '． ';font-weight:bold;color:#2e9e6b}
+  #pass{background:#1b2a3a}
+  #pass .card{max-width:420px;text-align:center}
+  #pass input{width:100%;box-sizing:border-box;font-size:20px;padding:12px;border:3px solid #9ab;border-radius:12px;margin:10px 0;text-align:center;font-family:inherit}
+  #rot{position:fixed;left:50%;top:10px;transform:translateX(-50%);background:rgba(255,255,255,.9);border-radius:16px;padding:8px 14px;font-size:13px;font-weight:bold;z-index:6;display:none;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
+<div id="rot">📱 よこむきに すると あそびやすいよ</div>
+<button id="bm" style="position:fixed;top:10px;right:10px;z-index:6;border:none;border-radius:18px;padding:8px 14px;background:rgba(255,255,255,.85);font-weight:bold;font-size:14px;font-family:inherit;display:none">☰ メニュー</button>
+<button class="k" id="bl">◀</button><button class="k" id="br">▶</button><button class="k" id="bj">ジャンプ</button>
+<div class="ov" id="ovCard"><div class="card" id="card"></div></div>
+<div class="ov on" id="pass"><div class="card"><h2>ありがとうアドベンチャー</h2><p>ありがとうグループ メンバーむけの まなびゲームです。<br>あいことばを いれてね。</p><input id="pw" type="password" autocomplete="off" placeholder="あいことば"><div id="pwmsg" style="color:#c0392b;min-height:20px;font-size:14px"></div><button class="btn" id="pwgo">はいる</button></div></div>
+<script>
+(()=>{
+// ================= 設定 =================
+// 合言葉：下の ひみつ文字（SHA-256）が ''（から）の あいだは、合言葉なしで あそべます。
+const PASS_HASH='ebb58530a4797edda8d675a11707c228db78a48d81dcdc3d438bd7f0d477a4b6';
+// ================= 内容（ステージ） =================
+// map: 12行。 # じめん  = ブロック  ? まなびブロック(上から ぶつかる)  o ハート  e ぷんぷんくん  N はなしかけ(ひと)  F ゴール  P スタート  . くうき
+// cards: ? ブロックを 左から じゅんに つかう。npcs: N を 左から じゅんに つかう。
+// ---- ステージ地形を じどうで つくる（トークン：fN=平らN / pN=穴N / H=ハート列 / Q=まなびブロック / E=てき / N=ひと / B=れんが台）
+function build(spec){
+  const toks=spec.split(/\s+/).filter(Boolean);let W=0;const parts=[];
+  for(const t of toks){const k=t[0],n=parseInt(t.slice(1))||0;let w=0;
+    if(k==='f')w=n;else if(k==='p')w=n;else if(k==='H')w=6;else if(k==='Q')w=5;else if(k==='E')w=8;else if(k==='N')w=5;else if(k==='B')w=8;
+    parts.push({k,n,w,x:W});W+=w;}
+  const rows=Array.from({length:12},()=>Array(W).fill('.'));
+  const put=(x,y,c)=>{if(x>=0&&x<W&&y>=0&&y<12)rows[y][x]=c;};
+  for(const p of parts){
+    if(p.k!=='p')for(let x=p.x;x<p.x+p.w;x++)for(let y=9;y<12;y++)put(x,y,'#');
+    if(p.k==='H'){for(let i=1;i<=4;i++)put(p.x+i,i===2||i===3?6:7,'o');}
+    if(p.k==='Q'){put(p.x+1,6,'=');put(p.x+2,6,'?');put(p.x+3,6,'=');put(p.x+2,8,'o');}
+    if(p.k==='E'){put(p.x+4,8,'e');put(p.x+2,7,'o');put(p.x+6,7,'o');}
+    if(p.k==='N'){put(p.x+2,8,'N');}
+    if(p.k==='B'){for(let i=3;i<=5;i++){put(p.x+i,7,'=');put(p.x+i,6,'o');}}
+  }
+  put(2,8,'P');const last=parts[parts.length-1];put(last.x+4,8,'F');
+  return rows.map(r=>r.join(''));
+}
+const STAGES=[
+ {id:'w1',name:'ワールド1：ありがとうの もり',theme:'day',goal:'感謝の マインドセットを まなぼう。ありがとうは「さきに わたす」もの。',
+  map:build('f7 H Q E N H p2 Q B E Q f9'),
+  npcs:[{name:'せんぱいスタッフ',lines:['ありがとうは 「集める」ものじゃなくて、「渡す」もの。','目の前の人の こまりごとを 解決すると、感謝は あとから ついてくるんだ。']}],
+  cards:[
+   {type:'info',tag:'マインドセット',title:'ありがとうは あとから ついてくる',body:'感謝は、もらうために動いて手に入れるものではありません。<br>「誰に」「何を」届けるかが先。こまりごとを解決した結果として、感謝は<b>あとから</b>ついてきます。',key:'感謝は あとから ついてくる'},
+   {type:'choice',tag:'ばめんクイズ',title:'おわりの ひとこと',say:'エアコンの作業が終わりました。お客様の前で、どうする？',opts:[
+     {t:'「口コミ、書いてくださいね！」とお願いする',ok:false,fb:'感謝（口コミ）が目的になると、お客様は売り込みと感じてしまいます。'},
+     {t:'「ありがとうございました！」と、自分から直接つたえる',ok:true,fb:'お客様のおかげで仕事ができる。その気持ちを、まず自分から伝えるのが大切です。'},
+     {t:'だまって片づけて、すぐ帰る',ok:false,fb:'事務的に帰ると、気持ちが伝わりません。最後のひとことが印象を決めます。'}],key:'最後は 自分から「ありがとうございました」'},
+   {type:'choice',tag:'ばめんクイズ',title:'どっちが さき？',say:'「こまりごとの解決」と「感謝の言葉」。どちらを先にする？',opts:[
+     {t:'感謝（口コミ）をもらうために、作業する',ok:false,fb:'もらうために動くと、見返りを待つ気持ちが出てしまいます。'},
+     {t:'まず こまりごとを解決する。感謝はあとから付いてくる',ok:true,fb:'その通り。与えることが先、感謝は結果としてついてきます。'}],key:'与える（解決する）が さき'}],
+  summary:['感謝は、もらうために動くのではなく あとから ついてくる','作業の最後は 自分から「ありがとうございました」','まず こまりごとを 解決する']},
+
+ {id:'w2',name:'ワールド2：こえかけの もり',theme:'sunset',goal:'お客様への「トーク」の意図を まなぼう。売り込みではなく「あとで困らないための ご案内」。',
+  map:build('f7 H Q E p2 Q N B Q E H p3 Q E Q B E Q f9'),
+  npcs:[{name:'ベテランの せんぱい',lines:['ご案内は「売り込み」じゃない。あとで こまらないための ご案内なんだ。','だから ことわられても、だいじな ところだけは 必ず つたえるよ。']}],
+  cards:[
+   {type:'choice',tag:'トーク',title:'感想の ききかた',say:'作業が終わりました。お客様に感想を聞く場面です。',opts:[
+     {t:'「きれいになりましたよね？」',ok:false,fb:'誘導されると、お客様は「はい」としか言えません。本音（口コミや次の提案の材料）が出てきません。'},
+     {t:'「いかがでしたか？」と聞いて、返事をまつ',ok:true,fb:'お客様自身の言葉が、いちばんの宝物。誘導せず、聞いて待ちましょう。'}],key:'聞く場面は 誘導しない'},
+   {type:'choice',tag:'トーク',title:'しずかに なったら…',say:'「いかがでしたか？」と聞いたあと、お客様がだまってしまいました！',opts:[
+     {t:'すぐに「きれいですよね！」と言葉をかぶせる',ok:false,fb:'言葉を奪ってしまうと、お客様の本音が出ません。'},
+     {t:'笑顔で 3秒…10秒…と待つ',ok:true,fb:'沈黙をこわがらない。10秒でも30秒でも、お客様が話すまで待ちます。'}],key:'しずかなじかんを こわがらない'},
+   {type:'info',tag:'マインドセット',title:'ご案内は 「あたりまえ」',body:'追加のご案内は「取れたら取る」ではなく、<b>案内するのが当たり前</b>。<br>結果を分けるのは、道具やトークのうまさより、この「あたまの設定」です。3点セットは、6〜8割のお客様にご案内するのが目安です。',key:'案内は「取る」じゃなく「あたりまえ」'},
+   {type:'choice',tag:'トーク',title:'ご案内の しかた',say:'追加のご案内をする場面です。',opts:[
+     {t:'「…あの、取れたらでいいんですけど…もしよければ…」と迷いながら言う',ok:false,fb:'迷いながら言うと、お客様も迷います。「案内して当たり前」の気持ちで。'},
+     {t:'「3点セットがおすすめです。ご案内しますね」と堂々と案内する',ok:true,fb:'あとで困らないための案内。堂々と伝えるほど、お客様も安心します。'}],key:'堂々と ご案内する'},
+   {type:'choice',tag:'トーク',title:'ことわられたら？',say:'3点セットは、ことわられてしまいました。最低限のご案内は？',opts:[
+     {t:'「そうですか、では以上です」と終わる',ok:false,fb:'ここで終わると、あとで困るかもしれないポイントを伝えそびれます。'},
+     {t:'「ドレンホースだけでも」と、あとで詰まって水もれするかもしれない理由を伝える',ok:true,fb:'3点セットを断られても、最低ラインは必ずご案内。理由を添えると伝わります。'}],key:'ことわられても ドレンホースだけは ご案内'},
+   {type:'choice',tag:'トーク',title:'ねだんで 勝負？',say:'他社のほうが安いと言われました。どうする？',opts:[
+     {t:'単体の値段を下げて、数をとる',ok:false,fb:'安さの勝負は、そのうち負けます。総売上も下がりやすくなります。'},
+     {t:'最低限のご案内を、必ず乗せる',ok:true,fb:'値段で戦わず、案内で総売上を守る。これが長く続くやり方です。'}],key:'安さで勝負しない。ご案内を乗せる'}],
+  summary:['聞く場面は 誘導しない・だまっても待つ','ご案内は「取れたら」ではなく「あたりまえ」','ことわられても ドレンホースだけは 必ず ご案内']},
+
+ {id:'w3',name:'ワールド3：トイレの おしろ',theme:'night',goal:'トイレ掃除（無料）の「意図」を まなぼう。はじまりは社会貢献。',
+  map:build('f7 N H Q E p2 Q N B Q E H Q E B Q f9'),
+  npcs:[{name:'4人家族の おかあさん',lines:['仕事も 家事も 育児も、ほとんど ひとりで がんばっているの。','トイレは 家族みんなが つかうのに、だれも そうじしてくれなくて…','よごれが いやで、便器の中までは なかなか さわれないの。','おねがいしても やってもらえなくて、ケンカに なることも あるのよ。','もし だれかが そこを たすけてくれたら、すごく たすかるなぁ…']},
+        {name:'せんぱいスタッフ',lines:['この お母さんの話が、トイレ掃除を 無料にした はじまりなんだ。','「家族の ケンカの 原因を、すこしでも へらせたら」って。']}],
+  cards:[
+   {type:'info',tag:'意図',title:'はじまりは 社会貢献',body:'トイレ掃除を無料にしたのは、こまっているお母さんの話がきっかけです。<br>「家族のケンカの原因を、少しでも減らせたら」。<br>集客の効果は、そのあとで<b>付いてきた</b>ものです。',key:'じゅんばんは「社会貢献が さき」'},
+   {type:'choice',tag:'トーク',title:'「なんで 無料なんですか？」',say:'お客様に聞かれました。なんと答える？',opts:[
+     {t:'「口コミを書いてくれたら無料です」',ok:false,fb:'条件をつけると、社会貢献ではなく「取引」になってしまいます。'},
+     {t:'「集客のためにやっています」',ok:false,fb:'効果はあとから付いてきたもの。はじまりは「困っている人の力になりたい」気持ちです。'},
+     {t:'「お家のお母さんが少しでも楽になれば、と思って無料でやっています」',ok:true,fb:'はじまりの気持ちをそのまま伝える。これがいちばん伝わります。'}],key:'理由は「お母さんが 少しでも らくに」'},
+   {type:'choice',tag:'トーク',title:'「二階も ぜんぶ おねがい！」',say:'お客様に「じゃあ二階のトイレも全部お願い！」と言われました。',opts:[
+     {t:'「はい、全部 無料でやります」',ok:false,fb:'無料は「1か所・便器だけ」。期待が広がると、あとでクレームになります。'},
+     {t:'「トイレ掃除は1か所、便器だけ無料です。先にお伝えしておきますね」',ok:true,fb:'範囲は先に伝える。お客様に安心してもらえます。'}],key:'範囲は 先に つたえる（1か所・便器だけ）'},
+   {type:'choice',tag:'マナー',title:'トイレに入る とき',say:'無料のトイレ掃除に入る前です。',opts:[
+     {t:'だまって入る',ok:false,fb:'見られたくない人もいます。気持ち悪がられることも。'},
+     {t:'「お手洗いを見せていただいても よろしいですか？」と聞く',ok:true,fb:'許可をとってから入る。気づかいが、信頼につながります。'}],key:'入る前に ひとこと 許可をとる'},
+   {type:'info',tag:'マインドセット',title:'のこしたいのは 「思想」',body:'名前を残すより、<b>困っている人の力になる</b>という考えが広がること。<br>「儲かるからやる」ではなく、「困っている人のために」。思想が伝わるほど、長く続きます。',key:'のこしたいのは 名前でなく 思想'}],
+  summary:['無料のはじまりは 社会貢献（お母さんの話）。集客は あとから','トイレ掃除は「1か所・便器だけ」と先に伝える','入る前に ひとこと 許可をとる']},
+
+ {id:'w4',name:'ワールド4：かせぎの みち',theme:'sunset',goal:'お客様の「ながれ」と「止まらない こころ」を まなぼう。',
+  map:build('f7 H Q E p2 B Q N E Q p3 H Q E B f9'),
+  npcs:[{name:'せんぱいスタッフ',lines:['止まっちゃう時は、「才能がない」んじゃなくて 「こころの反応」なんだ。','その声に名前をつけて、「そう感じたんだね」って 受けとめれば、次の一歩を決められるよ。']}],
+  cards:[
+   {type:'order',tag:'ならべよう',title:'お客様の ながれ',say:'ありがとうシステムの流れ。「はじめ」から じゅんばんに タップしてね。',items:['予約（口コミを見て えらばれる）','訪問・ごあいさつ','エアコンの 作業','トイレ便器の 無料お掃除','3点セットの ご案内（ことわられてもドレンホース）','感想を聞く（誘導せず 待つ）','「ありがとうございました」と直接つたえる','リピートに つながる'],fb:'無料の価値が口コミで見えて、現場で追加をご案内する。この流れが、ありがとうシステムです。',key:'無料の価値 → 選ばれる → 現場で ご案内 → ありがとう'},
+   {type:'choice',tag:'マインドセット',title:'「やめとけ」の 声',say:'心の中で「お金に余裕がないから、やめとけ」という声が聞こえました。',opts:[
+     {t:'「余裕がないから、やめとく」と あきらめる',ok:false,fb:'声に そのまま従うと、動けなくなってしまいます。'},
+     {t:'「余裕のない自分が言ってるね」と受けとめて、次の一歩を決める',ok:true,fb:'声に名前をつけて切りはなすと、動けます。次の一歩をその場で決めましょう。'}],key:'声に名前をつけて、次の一歩を決める'},
+   {type:'choice',tag:'マインドセット',title:'「明日でいっか」',say:'やろうと思っていたことに、「明日でいいか」が出てきました。',opts:[
+     {t:'そのまま あしたに のばす',ok:false,fb:'のばすほど、動きにくくなります。'},
+     {t:'「明日でいっか」が出たら、やることリストを見直して、今できる一歩を決める',ok:true,fb:'小さな一歩なら、今できます。その場で決めて動きましょう。'}],key:'「明日でいっか」が出たら 今の一歩を決める'},
+   {type:'choice',tag:'マインドセット',title:'ひとりで かかえない',say:'わからないことが出て、悩んでいます。',opts:[
+     {t:'だれにも言わず、自己流でなんとかする',ok:false,fb:'抱え込むと、まちがった方向に進みやすくなります。'},
+     {t:'感情と問題をわけて、解決策が見えなければ相談する',ok:true,fb:'「自分で見えないなら相談する」。これも大事な力です。'}],key:'見えなければ 相談する'}],
+  summary:['流れ：予約→訪問→作業→トイレ便器の無料→ご案内→感想→ありがとう','止まりそうな時は 声に名前をつけて、次の一歩を決める','見えなければ 抱え込まず 相談する']},
+
+ {id:'w5',name:'ボーナス：ネオンの まち',theme:'neon',goal:'現場で「金額が わからない！」と なったら？ 事務員さんの 気もちも わかるステージ。',
+  map:build('f7 H E Q p2 N B Q E p3 H Q E B Q f9'),
+  npcs:[{name:'事務員さん',lines:['お電話は うれしいけれど、ほかの予約や お客様の対応中だと、すぐに出られないことも あるの。','毎回 金額の確認の電話だと、ちょっと こまってしまうことも…。','まず 資料を見てから 聞いてもらえると、すごく たすかるな。']}],
+  cards:[
+   {type:'choice',tag:'ばめんクイズ',title:'「金額が わからない！」',say:'現場でお客様に、料金を聞かれました。手元の資料は、まだ見ていません。',opts:[
+     {t:'すぐ事務員さんに 電話する',ok:false,fb:'事務員さんは、ほかの予約やお客様対応で手がふさがっていることも。毎回の電話はストレスになりやすいです。'},
+     {t:'まず 自分で 資料・料金表を 見て 確かめる',ok:true,fb:'まず自分で確かめる。見つかれば、お客様もすぐ安心できます。'}],key:'まず 自分で 資料を 見る'},
+   {type:'choice',tag:'ばめんクイズ',title:'見ても わからない！',say:'資料を見たけれど、書いていませんでした。',opts:[
+     {t:'「たぶん〇〇円です」と、お客様に答える',ok:false,fb:'すいそくで答えると、まちがって信用を失うおそれがあります。'},
+     {t:'「確認して すぐご連絡します」と伝え、「見た資料」と「聞きたいこと」をまとめて質問する',ok:true,fb:'お客様には誠実に。事務員さんには、見た資料と質問をまとめて送ると、すぐ答えやすくなります。'}],key:'見た資料と 聞きたいことを まとめて 質問'},
+   {type:'choice',tag:'ばめんクイズ',title:'イメージが つかない とき',say:'段取りや状況が、頭の中でイメージできません。',opts:[
+     {t:'わからないまま 進める',ok:false,fb:'あとで大きなミスになることがあります。'},
+     {t:'自分で 見に行く・調べて イメージを つくる',ok:true,fb:'イメージがつかなければ、自分で見に行く。それが近道です。'}],key:'イメージがつかなければ 見に行く'},
+   {type:'info',tag:'チーム',title:'事務員さんにも ありがとう',body:'事務員さんも、<b>ありがとうグループ</b>の大事な仲間です。<br>助けてもらったら、ひとこと「ありがとう」。それが、チーム全体の「ありがとうシステム」になります。',key:'事務員さんにも「ありがとう」を'}],
+  summary:['金額は まず 自分で 資料を見て 確かめる','見てもわからない時は「見た資料」と「聞きたいこと」を まとめて質問','事務員さんにも「ありがとう」を つたえる']}
+];
+
+// ================= 基本 =================
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');const LW=960,LH=540,TS=45;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function fit(){const s=Math.min(innerWidth/LW,innerHeight/LH);cv.style.width=(LW*s)+'px';cv.style.height=(LH*s)+'px';$('rot').style.display=(innerHeight>innerWidth&&innerWidth<700)?'block':'none';}
+addEventListener('resize',fit);fit();
+const isTouch=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
+// ---- audio（ごく小さく）
+let AC=null;function tone(f,d,type='sine',v=.04,delay=0){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+delay;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);}catch(e){}}
+const sJump=()=>tone(520,.12,'square',.025),sHeart=()=>{tone(988,.08,'sine',.05);tone(1319,.12,'sine',.05,.06);},sBlock=()=>{tone(440,.1,'triangle',.06);tone(660,.14,'triangle',.06,.08);},sStomp=()=>{tone(300,.1,'triangle',.06);tone(600,.15,'sine',.05,.08);},sHurt=()=>tone(150,.2,'sawtooth',.05),sGoal=()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.25,'triangle',.06,i*.1));
+
+// ---- state
+let save={cleared:{},cards:{},hearts:0};try{const d=JSON.parse(localStorage.getItem('arigatouMario1'));if(d)save=Object.assign(save,d);}catch(e){}
+const persist=()=>{try{localStorage.setItem('arigatouMario1',JSON.stringify(save));}catch(e){}};
+let mode='menu',stageIdx=0,S=null,cam=0,gt=0,paused=false;
+
+// ---- input
+const keys={};let touchL=false,touchR=false,touchJ=false;
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
+addEventListener('keyup',e=>keys[e.code]=false);
+function hold(id,on,off){const b=$(id);const d=e=>{e.preventDefault();b.classList.add('p');on();};const u=e=>{e.preventDefault();b.classList.remove('p');off();};b.addEventListener('pointerdown',d);b.addEventListener('pointerup',u);b.addEventListener('pointercancel',u);b.addEventListener('pointerleave',u);}
+hold('bl',()=>touchL=true,()=>touchL=false);hold('br',()=>touchR=true,()=>touchR=false);hold('bj',()=>touchJ=true,()=>touchJ=false);
+const L=()=>keys.ArrowLeft||keys.KeyA||touchL,R=()=>keys.ArrowRight||keys.KeyD||touchR,J=()=>keys.Space||keys.ArrowUp||keys.KeyW||touchJ;
+
+// ================= ステージ読み込み =================
+function loadStage(i){
+  const st=STAGES[i];S={st,i,rows:st.map.map(r=>r.split('')),W:st.map[0].length,H:st.map.length,hearts:[],enemies:[],npcs:[],blocks:{},cardList:st.cards.slice(),npcList:st.npcs.slice(),got:0,cardsDone:0,total:st.cards.length,
+    p:{x:0,y:0,w:28,h:40,vx:0,vy:0,on:false,face:1,coy:0,buf:0,inv:0,anim:0},start:null,goal:null,fx:[],checkpoint:null,tips:0};
+  let ci=0,ni=0;
+  for(let y=0;y<S.H;y++)for(let x=0;x<S.W;x++){const c=S.rows[y][x];
+    if(c==='P'){S.start={x:x*TS+8,y:y*TS+TS-40};S.rows[y][x]='.';}
+    else if(c==='o'){S.hearts.push({x:x*TS+TS/2,y:y*TS+TS/2,t:false,ph:Math.random()*6});S.rows[y][x]='.';}
+    else if(c==='e'){S.enemies.push({x:x*TS+6,y:y*TS+TS-30,w:34,h:30,vx:-60,dir:-1,alive:true,smile:0,ox:x*TS});S.rows[y][x]='.';}
+    else if(c==='N'){S.npcs.push({x:x*TS+TS/2,y:y*TS+TS,data:S.npcList[ni++]||{name:'ひと',lines:['…']},talked:false});S.rows[y][x]='.';}
+    else if(c==='?'){S.blocks[x+','+y]={card:S.cardList[ci++]||null,used:false,bump:0};}
+    else if(c==='F'){S.goal={x:x*TS,y:y*TS};S.rows[y][x]='.';}}
+  S.p.x=S.start.x;S.p.y=S.start.y;S.checkpoint={x:S.p.x,y:S.p.y};cam=0;
+}
+const tileAt=(x,y)=>{if(x<0||x>=S.W)return'#';if(y<0)return'.';if(y>=S.H)return'.';return S.rows[y][x];};
+const solid=c=>c==='#'||c==='='||c==='?';
+
+// ================= 更新 =================
+function update(dt){
+  if(paused)return;gt+=dt;const p=S.p;
+  const ax=(R()?1:0)-(L()?1:0);
+  const tv=ax*250;p.vx+=(tv-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;
+  p.coy=p.on?.1:Math.max(0,p.coy-dt);p.buf=J()?(p.buf>0?p.buf-dt:(p.jh?0:.12)):0;
+  if(!J())p.jh=false;
+  if(p.buf>0&&p.coy>0&&!p.jh){p.vy=-640;p.on=false;p.coy=0;p.buf=0;p.jh=true;sJump();}
+  if(!J()&&p.vy<-200)p.vy=-200; // かるく おすと ひくく
+  p.vy=Math.min(p.vy+1800*dt,900);
+  moveX(p,p.vx*dt);moveY(p,p.vy*dt);
+  p.anim+=Math.abs(p.vx)*dt*.05;p.inv=Math.max(0,p.inv-dt);
+  if(p.y>S.H*TS+120){respawn('おちちゃった！ あわてず ゆっくり。');}
+  if(p.x<0)p.x=0;
+  // hearts
+  for(const h of S.hearts)if(!h.t&&Math.abs(h.x-(p.x+p.w/2))<26&&Math.abs(h.y-(p.y+p.h/2))<30){h.t=true;S.got++;save.hearts++;sHeart();burst(h.x,h.y,'#ff6f91',6);}
+  // enemies
+  for(const e of S.enemies){if(!e.alive){e.smile+=dt;continue;}
+    e.x+=e.vx*dt;const fx=e.vx>0?e.x+e.w+2:e.x-2;const gy=Math.floor((e.y+e.h+4)/TS),cx=Math.floor(fx/TS),cy=Math.floor((e.y+e.h/2)/TS);
+    if(solid(tileAt(cx,cy))||!solid(tileAt(cx,gy))||Math.abs(e.x-e.ox)>170){e.vx*=-1;}
+    if(overlap(p,e)&&p.inv<=0){
+      if(p.vy>80&&p.y+p.h-e.y<24){e.alive=false;e.smile=0;p.vy=-420;sStomp();burst(e.x+e.w/2,e.y,'#ffd23f',10);S.got+=2;save.hearts+=2;}
+      else{p.inv=1.2;p.vy=-300;p.vx=-p.face*220;sHurt();hurtTip();}}}
+  // blocks bump (head hit handled in moveY)
+  for(const k in S.blocks){const b=S.blocks[k];b.bump=Math.max(0,b.bump-dt*4);}
+  // npc talk
+  S.nearNpc=null;for(const n of S.npcs)if(Math.abs(n.x-(p.x+p.w/2))<60&&Math.abs(n.y-(p.y+p.h))<30)S.nearNpc=n;
+  // goal
+  if(S.goal&&p.x+p.w>S.goal.x-2&&Math.abs(p.y-S.goal.y)<TS*5){if(S.cardsDone>=S.total)finishStage();else{p.x=S.goal.x-p.w-4;p.vx=0;if(toastT<1.2)toast('？ブロックの まなびカードを あつめてね（'+S.cardsDone+'/'+S.total+'）');}}
+  // fx
+  for(const f of S.fx){f.t-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vy+=500*dt;}S.fx=S.fx.filter(f=>f.t>0);
+  cam=clamp(p.x+p.w/2-LW*.4,0,S.W*TS-LW);
+}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function moveX(p,dx){p.x+=dx;const y0=Math.floor(p.y/TS),y1=Math.floor((p.y+p.h-1)/TS);
+  if(dx>0){const x=Math.floor((p.x+p.w)/TS);for(let y=y0;y<=y1;y++)if(solid(tileAt(x,y))){p.x=x*TS-p.w-.01;p.vx=0;break;}}
+  else if(dx<0){const x=Math.floor(p.x/TS);for(let y=y0;y<=y1;y++)if(solid(tileAt(x,y))){p.x=(x+1)*TS+.01;p.vx=0;break;}}}
+function moveY(p,dy){p.y+=dy;p.on=false;const x0=Math.floor(p.x/TS),x1=Math.floor((p.x+p.w-1)/TS);
+  if(dy>0){const y=Math.floor((p.y+p.h)/TS);for(let x=x0;x<=x1;x++)if(solid(tileAt(x,y))){p.y=y*TS-p.h;p.vy=0;p.on=true;break;}}
+  else if(dy<0){const y=Math.floor(p.y/TS);for(let x=x0;x<=x1;x++){const c=tileAt(x,y);if(solid(c)){p.y=(y+1)*TS;p.vy=0;if(c==='?')hitBlock(x,y);break;}}}}
+function hitBlock(x,y){const b=S.blocks[x+','+y];if(!b||b.used)return;b.bump=1;if(!b.card){b.used=true;S.rows[y][x]='=';return;}b.used=true;sBlock();openCard(b.card,()=>{S.rows[y][x]='=';});}
+function burst(x,y,c,n){for(let i=0;i<n;i++)S.fx.push({x,y,vx:(Math.random()-.5)*240,vy:-Math.random()*240,t:.6+Math.random()*.4,c});}
+let tipCool=0;function hurtTip(){save.hearts=Math.max(0,save.hearts-1);}
+function respawn(msg){const p=S.p;p.x=S.checkpoint.x;p.y=S.checkpoint.y;p.vx=p.vy=0;p.inv=1.5;toast(msg);}
+let toastT=0,toastMsg='';function toast(m){toastMsg=m;toastT=2.5;}
+
+// ================= カード（まなび） =================
+function showOverlay(html){paused=true;$('card').innerHTML=html;$('ovCard').classList.add('on');$('card').scrollTop=0;}
+function closeOverlay(){$('ovCard').classList.remove('on');paused=false;}
+function openCard(c,done){
+  const key=S.st.id+':'+(c.title||'');
+  const finish=()=>{if(!save.cards[key]){save.cards[key]=1;}S.cardsDone++;persist();closeOverlay();done&&done();};
+  if(c.type==='info'){
+    showOverlay(`<span class="tag">${c.tag||'まなび'}</span><h2>${c.title}</h2><p>${c.body}</p>${c.key?`<div class="keyp">💡 ${c.key}</div>`:''}<div class="row"><button class="btn" id="cOk">なるほど！</button></div>`);
+    $('cOk').onclick=finish;
+  }else if(c.type==='choice'){
+    showOverlay(`<span class="tag">${c.tag||'どっちが いい？'}</span><h2>${c.title}</h2>${c.say?`<div class="say">${c.say}</div>`:''}<div id="opts">${c.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o.t}</button>`).join('')}</div><div id="fb"></div>`);
+    let answered=false;document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(answered&&!c.opts[+b.dataset.i].ok)return;const o=c.opts[+b.dataset.i];
+      if(o.ok){answered=true;b.classList.add('ok');save.hearts+=3;S.got+=3;sHeart();
+        $('fb').innerHTML=`<div class="fb ok">⭕ ${o.fb}</div>${c.key?`<div class="keyp">💡 ${c.key}</div>`:''}<div class="row"><button class="btn" id="cOk">つぎへ</button></div>`;$('cOk').onclick=finish;
+        document.querySelectorAll('.opt').forEach(x=>x.disabled=true);}
+      else{b.classList.add('ng');b.disabled=true;$('fb').innerHTML=`<div class="fb ng">🤔 ${o.fb}<br>べつの こたえも えらんでみよう！</div>`;sHurt();}});
+  }else if(c.type==='order'){
+    const items=c.items.map((t,i)=>({t,i})).sort(()=>Math.random()-.5);let picked=[];
+    const draw=()=>{showOverlay(`<span class="tag">${c.tag||'ならべよう'}</span><h2>${c.title}</h2><p>${c.say||'じゅんばんに タップしてね'}</p><ol class="ordered">${picked.map(i=>`<li>${c.items[i]}</li>`).join('')}</ol><div>${items.filter(o=>!picked.includes(o.i)).map(o=>`<span class="oitem" data-i="${o.i}">${o.t}</span>`).join('')}</div><div id="fb"></div>`);
+      document.querySelectorAll('.oitem').forEach(el=>el.onclick=()=>{const i=+el.dataset.i;
+        if(i===picked.length){picked.push(i);sHeart();if(picked.length===c.items.length){draw();$('fb').innerHTML=`<div class="fb ok">⭕ ${c.fb||'そのとおり！'}</div>${c.key?`<div class="keyp">💡 ${c.key}</div>`:''}<div class="row"><button class="btn" id="cOk">つぎへ</button></div>`;$('cOk').onclick=finish;save.hearts+=3;S.got+=3;}else draw();}
+        else{el.classList.add('sel');sHurt();$('fb').innerHTML=`<div class="fb ng">🤔 そこは まだ かな？ もういちど かんがえてみよう</div>`;}});};
+    draw();
+  }
+}
+function talkNpc(n){const lines=n.data.lines.slice();let i=0;const show=()=>{showOverlay(`<span class="tag">${n.data.name}</span><div class="say">${lines[i]}</div><div class="row"><button class="btn" id="nx">${i<lines.length-1?'つづき':'ありがとう！'}</button></div>`);$('nx').onclick=()=>{if(i<lines.length-1){i++;show();}else{closeOverlay();if(!n.talked){n.talked=true;S.got+=2;save.hearts+=2;sHeart();}}};};show();}
+addEventListener('keydown',e=>{if(e.code==='KeyE'||e.code==='Enter')tryTalk();});
+function tryTalk(){if(mode==='play'&&!paused&&S.nearNpc)talkNpc(S.nearNpc);}
+cv.addEventListener('pointerdown',e=>{if(mode==='play'&&!paused&&S.nearNpc){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*LW,y=(e.clientY-r.top)/r.height*LH;const nx=S.nearNpc.x-cam,ny=S.nearNpc.y;if(Math.abs(x-nx)<60&&Math.abs(y-ny+40)<70)talkNpc(S.nearNpc);}});
+
+// ================= ステージ開始・クリア =================
+function startStage(i){stageIdx=i;loadStage(i);const st=S.st;
+  showOverlay(`<span class="tag">ステージ ${i+1}</span><h2>${st.name}</h2><p>${st.goal}</p><p style="font-size:14px;color:#556">▶ ハート（ありがとう）を あつめて ゴールへ！<br>？ブロックを 下から ジャンプで たたくと「まなびカード」が でるよ。<br>ぷんぷんくんは 上から ふんで 笑顔に しよう。<br>ひとに 近づいて タップ（パソコンは Eキー）で おはなし。<br>パソコン：← → で うごく・スペースで ジャンプ</p><div class="row"><button class="btn pink" id="go">スタート！</button></div>`);
+  $('go').onclick=()=>{closeOverlay();mode='play';setButtons(true);};}
+function setButtons(on){$('bm').style.display=on?'block':'none';['bl','br','bj'].forEach(id=>$(id).classList.toggle('on',on&&isTouch));}
+function finishStage(){if(mode!=='play')return;mode='clear';setButtons(false);sGoal();save.cleared[S.st.id]=true;persist();
+  const st=S.st;showOverlay(`<span class="tag">ステージクリア！</span><h2>${st.name}</h2><p>まなびカード：${S.cardsDone}/${S.total}　 ハート：${S.got}</p><p><b>今日の まなび</b></p>${st.summary.map(t=>`<div class="keyp">💡 ${t}</div>`).join('')}<div class="row"><button class="btn" id="nx">${stageIdx<STAGES.length-1?'つぎの ステージへ':'おわり'}</button><button class="btn pink" id="re">もういちど</button></div>`);
+  $('nx').onclick=()=>{closeOverlay();if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{mode='menu';menu();}};$('re').onclick=()=>{closeOverlay();startStage(stageIdx);};}
+function menu(){mode='menu';setButtons(false);showOverlay(`<h2>ありがとうアドベンチャー</h2><p>ステージを えらんでね</p>${STAGES.map((s,i)=>`<button class="opt" data-i="${i}">${save.cleared[s.id]?'✅':'▶'} ステージ${i+1}：${s.name}</button>`).join('')}`);
+  document.querySelectorAll('#card .opt').forEach(b=>b.onclick=()=>{closeOverlay();startStage(+b.dataset.i);});}
+
+// ================= 描画 =================
+function drawBG(){const th=S.st.theme;const sk={day:['#6fc8ff','#e8f6ff'],night:['#1b1a4a','#5a3a8a'],sunset:['#ff9a62','#ffe3c0'],neon:['#1a1038','#6a2a8a']}[th]||['#6fc8ff','#e8f6ff'];
+  const g=ctx.createLinearGradient(0,0,0,LH);g.addColorStop(0,sk[0]);g.addColorStop(1,sk[1]);ctx.fillStyle=g;ctx.fillRect(0,0,LW,LH);
+  for(let i=0;i<7;i++){const x=((i*260-cam*.3+gt*6)%(LW+300)+LW+300)%(LW+300)-150,y=60+(i%3)*50;ctx.fillStyle=th==='day'||th==='sunset'?'rgba(255,255,255,.85)':'rgba(255,255,255,.12)';ctx.beginPath();ctx.ellipse(x,y,60,18,0,0,7);ctx.ellipse(x+34,y-10,36,16,0,0,7);ctx.fill();}
+  ctx.fillStyle=th==='neon'?'#2a1a4a':'#9ad08a';for(let i=-1;i<8;i++){const x=i*220-(cam*.5)%220;ctx.beginPath();ctx.moveTo(x,LH-TS*3);ctx.quadraticCurveTo(x+110,LH-TS*3-110,x+220,LH-TS*3);ctx.fill();}}
+function drawTiles(){const c0=Math.floor(cam/TS),c1=Math.min(S.W-1,c0+Math.ceil(LW/TS)+1);
+  for(let y=0;y<S.H;y++)for(let x=c0;x<=c1;x++){const c=S.rows[y][x],px=x*TS-cam,py=y*TS;
+    if(c==='#'){const up=tileAt(x,y-1)!=='#';ctx.fillStyle='#b5834f';ctx.fillRect(px,py,TS+1,TS+1);ctx.fillStyle='#9a6a3a';ctx.fillRect(px+4,py+TS-8,12,4);ctx.fillRect(px+24,py+14,10,4);if(up){ctx.fillStyle='#5fc457';ctx.fillRect(px,py,TS+1,10);ctx.fillStyle='#7ee06f';ctx.fillRect(px,py,TS+1,4);}}
+    else if(c==='='){ctx.fillStyle='#d9835a';ctx.fillRect(px,py,TS,TS);ctx.strokeStyle='#a85a38';ctx.lineWidth=2;ctx.strokeRect(px+1,py+1,TS-2,TS-2);ctx.beginPath();ctx.moveTo(px,py+TS/2);ctx.lineTo(px+TS,py+TS/2);ctx.moveTo(px+TS/2,py);ctx.lineTo(px+TS/2,py+TS/2);ctx.moveTo(px+TS/4,py+TS/2);ctx.lineTo(px+TS/4,py+TS);ctx.moveTo(px+TS*.75,py+TS/2);ctx.lineTo(px+TS*.75,py+TS);ctx.stroke();}
+    else if(c==='?'){const b=S.blocks[x+','+y],bump=b?b.bump:0,off=-Math.sin(bump*Math.PI)*10;ctx.fillStyle='#ffd23f';ctx.fillRect(px,py+off,TS,TS);ctx.strokeStyle='#d49a10';ctx.lineWidth=3;ctx.strokeRect(px+2,py+2+off,TS-4,TS-4);ctx.fillStyle='#ff4f7b';heart(px+TS/2,py+TS/2-2+off,10);ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('学',px+TS/2,py+TS-8+off);}}}
+function heart(x,y,s){ctx.beginPath();ctx.moveTo(x,y+s*.9);ctx.bezierCurveTo(x-s*1.3,y,x-s*.7,y-s*.9,x,y-s*.35);ctx.bezierCurveTo(x+s*.7,y-s*.9,x+s*1.3,y,x,y+s*.9);ctx.fill();}
+function drawPlayer(){const p=S.p;if(p.inv>0&&Math.floor(gt*20)%2)return;const x=p.x-cam+p.w/2,y=p.y+p.h;ctx.save();ctx.translate(x,y);ctx.scale(p.face,1);
+  const run=Math.sin(p.anim*3)*(p.on?1:.3)*(Math.abs(p.vx)>20?1:0);
+  ctx.fillStyle='#2b3a6a';ctx.fillRect(-9,-12+run*3,8,12);ctx.fillRect(1,-12-run*3,8,12);
+  ctx.fillStyle='#ff9a3c';rr(-11,-30,22,20,5);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(-11,-20,22,3);
+  ctx.fillStyle='#ffe0c0';ctx.beginPath();ctx.arc(0,-35,10,0,7);ctx.fill();
+  ctx.fillStyle='#2e9e6b';ctx.beginPath();ctx.arc(0,-38,10.5,Math.PI,0);ctx.fill();ctx.fillRect(-2,-40,15,4);ctx.fillStyle='#ff4f7b';heart(2,-44,4);
+  ctx.fillStyle='#222';ctx.fillRect(3,-36,2.5,4);ctx.fillStyle='#ff9fb0';ctx.fillRect(4,-31,5,2.5);ctx.restore();}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+function drawEnemies(){for(const e of S.enemies){const x=e.x-cam;if(x<-60||x>LW+60)continue;
+  if(!e.alive){const a=Math.max(0,1-e.smile);ctx.globalAlpha=a;ctx.fillStyle='#ffb0c8';heart(x+17,e.y-e.smile*60,12);ctx.globalAlpha=1;continue;}
+  ctx.fillStyle='#6a5a8a';ctx.beginPath();ctx.ellipse(x+17,e.y+18,18,14,0,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+10,e.y+14,4,0,7);ctx.arc(x+24,e.y+14,4,0,7);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(x+10,e.y+13,3,4);ctx.fillRect(x+22,e.y+13,3,4);
+  ctx.strokeStyle='#222';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x+5,e.y+7);ctx.lineTo(x+13,e.y+10);ctx.moveTo(x+29,e.y+7);ctx.lineTo(x+21,e.y+10);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText('ぷんぷん',x+17,e.y+28);}}
+function drawObjs(){for(const h of S.hearts){if(h.t)continue;const x=h.x-cam;if(x<-30||x>LW+30)continue;ctx.fillStyle='#ff4f7b';heart(x,h.y+Math.sin(gt*4+h.ph)*3,9);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillRect(x-5,h.y-6+Math.sin(gt*4+h.ph)*3,3,3);}
+  for(const n of S.npcs){const x=n.x-cam;if(x<-40||x>LW+40)continue;ctx.fillStyle='#e8b98a';ctx.beginPath();ctx.arc(x,n.y-40,11,0,7);ctx.fill();ctx.fillStyle='#d05a8a';rr(x-12,n.y-30,24,30,6);ctx.fill();ctx.fillStyle='#5a3a22';ctx.beginPath();ctx.arc(x,n.y-44,11,Math.PI,0);ctx.fill();ctx.fillStyle='#222';ctx.fillRect(x+2,n.y-41,2,4);
+    if(!n.talked){ctx.fillStyle='#ff4f7b';heart(x,n.y-62+Math.sin(gt*4)*3,7);}if(S.nearNpc===n){ctx.fillStyle='rgba(255,255,255,.95)';rr(x-62,n.y-98,124,24,12);ctx.fill();ctx.fillStyle='#d6396a';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText('タップで はなす',x,n.y-82);}}
+  if(S.goal){const x=S.goal.x-cam;ctx.fillStyle='#fff';ctx.fillRect(x+16,S.goal.y-TS*4,4,TS*5);ctx.fillStyle='#ff4f7b';ctx.beginPath();ctx.moveTo(x+20,S.goal.y-TS*4);ctx.lineTo(x+70,S.goal.y-TS*3.4+Math.sin(gt*4)*3);ctx.lineTo(x+20,S.goal.y-TS*2.8);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillText(S.cardsDone>=S.total?'GOAL':'🔒 '+S.cardsDone+'/'+S.total,x+42,S.goal.y-TS*3.4);}
+  for(const f of S.fx){ctx.fillStyle=f.c;ctx.globalAlpha=clamp(f.t*2,0,1);ctx.fillRect(f.x-cam-2,f.y-2,5,5);ctx.globalAlpha=1;}}
+function drawHUD(){ctx.fillStyle='rgba(255,255,255,.85)';rr(10,10,230,34,17);ctx.fill();ctx.fillStyle='#ff4f7b';heart(30,27,8);ctx.fillStyle='#223';ctx.font='bold 16px sans-serif';ctx.textAlign='left';ctx.fillText('ありがとう '+S.got,46,33);ctx.fillText('学び '+S.cardsDone+'/'+S.total,150,33);
+  if(toastT>0){ctx.globalAlpha=clamp(toastT,0,1);ctx.fillStyle='rgba(30,40,60,.85)';rr(LW/2-190,70,380,40,16);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(toastMsg,LW/2,96);ctx.globalAlpha=1;}}
+function draw(){drawBG();drawTiles();drawObjs();drawEnemies();drawPlayer();drawHUD();}
+
+// ================= ループ =================
+let last=performance.now();
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;ctx.setTransform(1,0,0,1,0,0);
+  if(S&&(mode==='play'||mode==='clear')){if(mode==='play')update(dt);toastT=Math.max(0,toastT-dt);draw();}
+  else{ctx.fillStyle='#1b2a3a';ctx.fillRect(0,0,LW,LH);}
+  requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+
+// ================= 合言葉 =================
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+function enter(){$('pass').classList.remove('on');menu();}
+if(!PASS_HASH)enter();
+$('pwgo').onclick=async()=>{const h=await sha($('pw').value.trim());if(h===PASS_HASH){enter();}else{$('pwmsg').textContent='あいことばが ちがうみたい';}};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('pwgo').click();});
+$('bm').onclick=()=>{if(mode==='play'&&!paused){mode='menu';menu();}};
+window.__m={get S(){return S},get mode(){return mode},startStage,menu,keys,STAGES,save,get paused(){return paused},openCard,tryTalk};
+})();
+</script>
+</body>
+</html>
